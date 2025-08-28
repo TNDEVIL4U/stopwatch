@@ -1,20 +1,204 @@
-<html>
-    <head>
-        <title>StopWatch</title>
-        <link rel="stylesheet" href="s.css">
-    </head>
-    <body>
-        <h1>STOP WATCH</h1>
-        <div>
-            <div id="display">
-                00:00:00:00
-            </div>
-            <div id="controls">
-                <button id="start" onclick="start()">Start</button>
-                <button id="stop" onclick="stop()">Stop</button>
-                <button id="reset" onclick="reset()">Reset</button>
-            </div>
-        </div>
-        <script src="j.js"></script>
-    </body>
+<!--Program using HTML to create a stopwatch using CSS and Javascript-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>THE STOPWATCH</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: bgCycle 8s infinite;
+      transition: background-color 2s ease;
+    }
+    @keyframes bgCycle {
+      0%   { background-color: #1e3c72; }
+      25%  { background-color: #00c9a7; }
+      50%  { background-color: #f8b500; }
+      75%  { background-color: #ff5e62; }
+      100% { background-color: #1e3c72; }
+    }
+    h1 {
+      font-size: 5rem;
+      margin-bottom: 2rem;
+      letter-spacing: 4px;
+      animation: rgbFlicker 1.5s infinite;
+      text-shadow:
+        0 0 10px rgba(0, 0, 0, 0.6),
+        0 0 20px rgba(255, 255, 255, 0.3),
+        0 0 30px rgba(255, 255, 255, 0.2);
+    }
+    @keyframes rgbFlicker {
+      0%   { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
+      33%  { color: #00ff00; text-shadow: 0 0 20px #00ff00; }
+      66%  { color: #0000ff; text-shadow: 0 0 20px #0000ff; }
+      100% { color: #ff0000; text-shadow: 0 0 20px #ff0000; }
+    }
+    #container {
+      background: rgba(0, 0, 0, 0.6);
+      padding: 40px;
+      border-radius: 20px;
+      border: 4px solid #ff4500;
+      box-shadow:
+        0 0 10px #ff4500,
+        0 0 20px #ff6347,
+        0 0 30px #ff8c00,
+        0 0 40px #ffa500;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+    #display {
+      font-size: 4rem;
+      margin-bottom: 2rem;
+      font-weight: bold;
+      color: #fff5e6;
+      text-shadow:
+        0 0 10px #ff4500,
+        0 0 20px #ff6347,
+        0 0 30px #ff8c00,
+        0 0 40px #ffa500;
+      animation: fireGlow 2s infinite alternate;
+    }
+    @keyframes fireGlow {
+      0%   { text-shadow: 0 0 10px #ff4500; }
+      50%  { text-shadow: 0 0 20px #ff6347; }
+      100% { text-shadow: 0 0 30px #ff8c00; }
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    #controls button {
+      font-size: 2rem;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(to right, #ff6a00, #ff0000);
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff5722;
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
+    }
+
+    #controls button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px #ff9800, 0 0 40px #ff5722;
+      background: linear-gradient(to right, #ff0000, #ff6a00);
+    }
+
+    #laps {
+      margin-top: 20px;
+      color: #fff;
+      text-align: center;
+    }
+    #laps h2 {
+      text-shadow: 0 0 10px #ff4500;
+    }
+    #lapList {
+      list-style: none;
+      padding: 0;
+    }
+    #lapList li {
+      font-size: 1.5rem;
+      margin: 8px 0;
+      color: #fff5e6;
+      text-shadow:
+        0 0 10px #ff4500,
+        0 0 20px #ff6347,
+        0 0 30px #ff8c00;
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 3rem;
+      }
+      #display {
+        font-size: 2.5rem;
+      }
+      #controls button {
+        font-size: 1.5rem;
+        padding: 10px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>STOPWATCH</h1>
+  <div id="container">
+    <div id="display">00:00:00:00</div>
+    <div id="controls">
+      <button onclick="start()">Start</button>
+      <button onclick="stop()">Stop</button>
+      <button onclick="reset()">Reset</button>
+      <button onclick="lap()">Lap</button>
+    </div>
+  </div>
+  <div id="laps">
+    <h2>Lap Times</h2>
+    <ul id="lapList"></ul>
+  </div>
+  <script>
+    let display = document.getElementById("display");
+    let lapList = document.getElementById("lapList");
+    let timer = null;
+    let startTime = 0;
+    let elapsedTime = 0;
+    let isRunning = false;
+    let lapCount = 0;
+    function start() {
+      if (!isRunning) {
+        startTime = Date.now() - elapsedTime;
+        timer = setInterval(update, 10);
+        isRunning = true;
+      }
+    }
+    function stop() {
+      if (isRunning) {
+        clearInterval(timer);
+        elapsedTime = Date.now() - startTime;
+        isRunning = false;
+      }
+    }
+    function reset() {
+      clearInterval(timer);
+      startTime = 0;
+      elapsedTime = 0;
+      isRunning = false;
+      display.textContent = "00:00:00:00";
+      lapCount = 0;
+      lapList.innerHTML = "";
+    }
+    function update() {
+      elapsedTime = Date.now() - startTime;
+      let hour = Math.floor(elapsedTime / (1000 * 60 * 60));
+      let minute = Math.floor((elapsedTime / (1000 * 60)) % 60);
+      let second = Math.floor((elapsedTime / 1000) % 60);
+      let milliseconds = Math.floor((elapsedTime % 1000) / 10);
+
+      hour = hour < 10 ? "0" + hour : hour;
+      minute = minute < 10 ? "0" + minute : minute;
+      second = second < 10 ? "0" + second : second;
+      milliseconds = milliseconds < 10 ? "0" + milliseconds : milliseconds;
+
+      display.textContent = `${hour}:${minute}:${second}:${milliseconds}`;
+    }
+    function lap() {
+      if (isRunning) {
+        lapCount++;
+        const lapTime = display.textContent;
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>Lap ${lapCount}:</strong> ${lapTime}`;
+        lapList.appendChild(li);
+      }
+    }
+  </script>
+</body>
 </html>
+<!--PROGRAM COMPLETED-->
